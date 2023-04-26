@@ -1,11 +1,19 @@
 import { execSync } from "child_process";
 import { EOL } from "os";
+import fs from "fs";
 
 const baseUrl = "http://localhost:" + process.env.PORT;
+const newDirectory = "./test-files/new-directory";
 
-afterAll(() => {
+function cleanup() {
+  if (fs.existsSync(newDirectory)) {
+    fs.rmdirSync(newDirectory, { recursive: true });
+  }
   execSync("git restore --source=HEAD --staged --worktree -- ./test-files");
-});
+}
+
+beforeAll(cleanup);
+afterAll(cleanup);
 
 test("index page", async () => {
   const response = await fetch(baseUrl + "/");
@@ -87,4 +95,27 @@ test("get jpg file", async () => {
     downloadUrl:
       "http://localhost:" + process.env.PORT + "/download/samples/pixel.jpg",
   });
+});
+
+test("get non-existent file", async () => {
+  const response = await fetch(baseUrl + "/api/file?filePath=does-not-exist");
+  expect(response.status).toBe(404);
+  const json = await response.json();
+  expect(json).toEqual({ error: "no such file or directory" });
+});
+
+test("create directory", async () => {
+  expect(fs.existsSync(newDirectory)).toBe(false);
+
+  const response = await fetch(
+    baseUrl + "/api/create-directory?directoryPath=new-directory",
+    {
+      method: "PUT",
+    }
+  );
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({ success: true });
+
+  expect(fs.existsSync(newDirectory)).toBe(true);
 });

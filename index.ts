@@ -41,6 +41,7 @@ app.get("/api/files", async (req: Request, res: Response) => {
     );
     res.json(filesAndFolders);
   } catch (error: any) {
+    console.error(error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -56,6 +57,13 @@ app.get("/api/file", async (req: Request, res: Response) => {
     const filePath = path.join(folder, filePathParamValue);
     console.log(`GET /file filePath=${filePath}`);
 
+    try {
+      await fs.promises.stat(filePath);
+    } catch {
+      res.status(404).json({ error: "no such file or directory" });
+      return;
+    }
+
     const fileType = getFileType(filePath);
     const isText = ["markdown", "xfdf"].includes(fileType);
     res.json({
@@ -68,6 +76,26 @@ app.get("/api/file", async (req: Request, res: Response) => {
       downloadUrl: `http://localhost:${port}/download/${filePathParamValue}`,
     });
   } catch (error: any) {
+    console.error(error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put("/api/create-directory", async (req: Request, res: Response) => {
+  try {
+    const directoryPathParamValue = req?.query?.directoryPath?.toString();
+    if (!directoryPathParamValue) {
+      res.status(400).json({ error: "directoryPath is required" });
+      return;
+    }
+
+    const directoryPath = path.join(folder, directoryPathParamValue);
+    console.log(`PUT /create-directory directoryPath=${directoryPath}`);
+
+    await fs.promises.mkdir(directoryPath, { recursive: true });
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error(error.message);
     res.status(500).json({ error: error.message });
   }
 });
