@@ -10,7 +10,7 @@
     "dev": "concurrently \"tsc --watch\" \"nodemon -q dist/index.js\"",
     "test-server": "cross-env NODE_ENV=test PORT=3001 LOCAL_FOLDER=./test-files npm run start",
     "test-runner": "cross-env PORT=3001 jest",
-    "test": "npm run build && concurrently -s last -k npm:test-server npm:test-runner"
+    "test": "npm run build && concurrently -s command-1 -k npm:test-server npm:test-runner"
   },
   "author": "David Prothero",
   "license": "MIT",
