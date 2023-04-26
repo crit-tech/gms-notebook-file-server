@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import { EOL } from "os";
 
 const baseUrl = "http://localhost:" + process.env.PORT;
 
@@ -50,7 +51,7 @@ test("get markdown file", async () => {
     name: "markdown.md",
     type: "file",
     fileType: "markdown",
-    contents: "# Markdown",
+    contents: "# Markdown" + EOL,
     downloadUrl:
       "http://localhost:" + process.env.PORT + "/download/samples/markdown.md",
   });
