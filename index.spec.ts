@@ -50,7 +50,7 @@ test("get markdown file", async () => {
     name: "markdown.md",
     type: "file",
     fileType: "markdown",
-    contents: "# Markdown\n",
+    contents: "# Markdown",
     downloadUrl:
       "http://localhost:" + process.env.PORT + "/download/samples/markdown.md",
   });
