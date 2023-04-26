@@ -65,9 +65,7 @@ app.get("/api/file", async (req: Request, res: Response) => {
       contents: isText
         ? await fs.promises.readFile(filePath, "utf8")
         : undefined,
-      downloadUrl: `http://localhost:${port}/download?filePath=${encodeURIComponent(
-        filePathParamValue
-      )}`,
+      downloadUrl: `http://localhost:${port}/download/${filePathParamValue}`,
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
