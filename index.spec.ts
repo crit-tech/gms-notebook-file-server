@@ -142,15 +142,15 @@ test("rename a file", async () => {
   expect(fs.existsSync("./test-files/samples/rename_me.md")).toBe(true);
 
   const response = await fetch(
-    baseUrl + "/api/rename?filePath=samples%2Frename_me.md&newName=renamed.md",
+    baseUrl + "/api/file?filePath=samples%2Frename_me.md&newName=renamed.md",
     {
-      method: "POST",
+      method: "PATCH",
     }
   );
   expect(response.status).toBe(200);
   const json = await response.json();
   expect(json).toEqual({ success: true });
 
-  expect(fs.existsSync(newFile)).toBe(false);
+  expect(fs.existsSync("./test-files/samples/rename_me.md")).toBe(false);
   expect(fs.existsSync("./test-files/samples/renamed.md")).toBe(true);
 });

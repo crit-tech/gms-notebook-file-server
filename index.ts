@@ -129,9 +129,10 @@ app.patch("/api/file", async (req: Request, res: Response) => {
     }
 
     const filePath = path.join(folder, filePathParamValue);
-    console.log(`PATH /file filePath=${filePath} newName=${newName}`);
+    console.log(`PATCH /file filePath=${filePath} newName=${newName}`);
 
     const newPath = path.join(path.dirname(filePath), newName);
+    console.log(newPath);
     await fs.promises.rename(filePath, newPath);
 
     res.json({ success: true });
