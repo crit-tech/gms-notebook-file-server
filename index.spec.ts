@@ -4,12 +4,11 @@ import fs from "fs";
 
 const baseUrl = "http://localhost:" + process.env.PORT;
 const newDirectory = "./test-files/new-directory";
+const newFile = "./test-files/samples/new-file.md";
 
 function cleanup() {
-  if (fs.existsSync(newDirectory)) {
-    fs.rmdirSync(newDirectory, { recursive: true });
-  }
   execSync("git restore --source=HEAD --staged --worktree -- ./test-files");
+  execSync("git clean -f -d -- ./test-files");
 }
 
 beforeAll(cleanup);
@@ -118,4 +117,40 @@ test("create directory", async () => {
   expect(json).toEqual({ success: true });
 
   expect(fs.existsSync(newDirectory)).toBe(true);
+});
+
+test("upload a new file", async () => {
+  const formData = new FormData();
+  const data = new Blob(["Hello, World!"], { type: "text/plain" });
+  formData.append("file", data, "foo.txt");
+  const response = await fetch(
+    baseUrl + "/api/file?filePath=samples%2Fnew-file.md",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({ success: true });
+
+  const contents = fs.readFileSync("./test-files/samples/new-file.md", "utf8");
+  expect(contents).toBe("Hello, World!");
+});
+
+test("rename a file", async () => {
+  expect(fs.existsSync("./test-files/samples/rename_me.md")).toBe(true);
+
+  const response = await fetch(
+    baseUrl + "/api/rename?filePath=samples%2Frename_me.md&newName=renamed.md",
+    {
+      method: "POST",
+    }
+  );
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({ success: true });
+
+  expect(fs.existsSync(newFile)).toBe(false);
+  expect(fs.existsSync("./test-files/samples/renamed.md")).toBe(true);
 });

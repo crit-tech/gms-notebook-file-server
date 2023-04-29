@@ -4,11 +4,13 @@ import fs from "fs";
 import path from "path";
 import { isNotJunk } from "junk";
 import { getFileType } from "./filetypes.js";
+import multer from "multer";
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT;
+const upload = multer({ dest: "uploads/" });
 
 const folder = process.env.LOCAL_FOLDER;
 if (!folder || !fs.existsSync(folder)) {
@@ -75,6 +77,64 @@ app.get("/api/file", async (req: Request, res: Response) => {
         : undefined,
       downloadUrl: `http://localhost:${port}/download/${filePathParamValue}`,
     });
+  } catch (error: any) {
+    console.error(error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post(
+  "/api/file",
+  upload.array("file", 1),
+  async (req: Request, res: Response) => {
+    try {
+      const filePathParamValue = req?.query?.filePath?.toString();
+      if (!filePathParamValue) {
+        res.status(400).json({ error: "filePath is required" });
+        return;
+      }
+
+      const filePath = path.join(folder, filePathParamValue);
+      console.log(`POST /file filePath=${filePath}`);
+
+      if (req?.files?.length !== 1) {
+        res.status(400).json({ error: "file is required" });
+        return;
+      }
+
+      const file = (req.files as Express.Multer.File[])[0];
+      await fs.promises.copyFile(file.path, filePath);
+      await fs.promises.unlink(file.path);
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error(error.message);
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+app.patch("/api/file", async (req: Request, res: Response) => {
+  try {
+    const filePathParamValue = req?.query?.filePath?.toString();
+    if (!filePathParamValue) {
+      res.status(400).json({ error: "filePath is required" });
+      return;
+    }
+
+    const newName = req?.query?.newName?.toString();
+    if (!newName) {
+      res.status(400).json({ error: "newName is required" });
+      return;
+    }
+
+    const filePath = path.join(folder, filePathParamValue);
+    console.log(`PATH /file filePath=${filePath} newName=${newName}`);
+
+    const newPath = path.join(path.dirname(filePath), newName);
+    await fs.promises.rename(filePath, newPath);
+
+    res.json({ success: true });
   } catch (error: any) {
     console.error(error.message);
     res.status(500).json({ error: error.message });
