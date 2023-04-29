@@ -142,6 +142,26 @@ app.patch("/api/file", async (req: Request, res: Response) => {
   }
 });
 
+app.delete("/api/file", async (req: Request, res: Response) => {
+  try {
+    const filePathParamValue = req?.query?.filePath?.toString();
+    if (!filePathParamValue) {
+      res.status(400).json({ error: "filePath is required" });
+      return;
+    }
+
+    const filePath = path.join(folder, filePathParamValue);
+    console.log(`DELETE /file filePath=${filePath}`);
+
+    await fs.promises.unlink(filePath);
+
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error(error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.put("/api/create-directory", async (req: Request, res: Response) => {
   try {
     const directoryPathParamValue = req?.query?.directoryPath?.toString();

@@ -154,3 +154,19 @@ test("rename a file", async () => {
   expect(fs.existsSync("./test-files/samples/rename_me.md")).toBe(false);
   expect(fs.existsSync("./test-files/samples/renamed.md")).toBe(true);
 });
+
+test("delete a file", async () => {
+  expect(fs.existsSync("./test-files/samples/delete_me.md")).toBe(true);
+
+  const response = await fetch(
+    baseUrl + "/api/file?filePath=samples%2Fdelete_me.md",
+    {
+      method: "DELETE",
+    }
+  );
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({ success: true });
+
+  expect(fs.existsSync("./test-files/samples/delete_me.md")).toBe(false);
+});
