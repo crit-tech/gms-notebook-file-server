@@ -64,6 +64,22 @@ test("get markdown file", async () => {
   });
 });
 
+test("get markdown file, case insensitive filename", async () => {
+  const response = await fetch(
+    baseUrl + "/api/file?filePath=samples%2Fcoolstuff.md"
+  );
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({
+    name: "CoolStuff.md",
+    type: "file",
+    fileType: "markdown",
+    contents: "# Cool Stuff" + EOL,
+    downloadUrl:
+      "http://localhost:" + process.env.PORT + "/download/samples/CoolStuff.md",
+  });
+});
+
 test("get xfdf file", async () => {
   const response = await fetch(
     baseUrl + "/api/file?filePath=samples%2Ffoo.xfdf"
@@ -152,6 +168,24 @@ test("rename a file", async () => {
   expect(json).toEqual({ success: true });
 
   expect(fs.existsSync("./test-files/samples/rename_me.md")).toBe(false);
+  expect(fs.existsSync("./test-files/samples/renamed.md")).toBe(true);
+});
+
+test("rename a file, case insensitive", async () => {
+  expect(fs.existsSync("./test-files/samples/rename_me_TOO.md")).toBe(true);
+
+  const response = await fetch(
+    baseUrl +
+      "/api/file?filePath=samples%2Frename_me_too.md&newName=renamed.md",
+    {
+      method: "PATCH",
+    }
+  );
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({ success: true });
+
+  expect(fs.existsSync("./test-files/samples/rename_me_TOO.md")).toBe(false);
   expect(fs.existsSync("./test-files/samples/renamed.md")).toBe(true);
 });
 

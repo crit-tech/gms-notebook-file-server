@@ -1,10 +1,13 @@
 import express, { Express, Request, Response } from "express";
+import cors from "cors";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { isNotJunk } from "junk";
-import { getFileType } from "./filetypes.js";
 import multer from "multer";
+import morgan from "morgan";
+import { getFileType } from "./filetypes.js";
+import { resolveFilePath } from "./utils.js";
 
 dotenv.config();
 
@@ -18,6 +21,8 @@ if (!folder || !fs.existsSync(folder)) {
   process.exit(1);
 }
 
+app.use(morgan("tiny"));
+app.use(cors());
 app.use("/download", express.static(folder));
 
 app.get("/", (req: Request, res: Response) => {
@@ -30,7 +35,7 @@ app.get("/api/files", async (req: Request, res: Response) => {
     const parentFolderPath = parentFolderPathParamValue
       ? path.join(folder, parentFolderPathParamValue)
       : folder;
-    console.log(`GET /files parentFolderPath=${parentFolderPath}`);
+
     const files = await fs.promises.readdir(parentFolderPath);
     const filesAndFolders = await Promise.all(
       files.filter(isNotJunk).map(async (file) => {
@@ -41,6 +46,7 @@ app.get("/api/files", async (req: Request, res: Response) => {
         };
       })
     );
+
     res.json(filesAndFolders);
   } catch (error: any) {
     console.error(error.message);
@@ -50,18 +56,16 @@ app.get("/api/files", async (req: Request, res: Response) => {
 
 app.get("/api/file", async (req: Request, res: Response) => {
   try {
-    const filePathParamValue = req?.query?.filePath?.toString();
+    let filePathParamValue = req?.query?.filePath?.toString();
     if (!filePathParamValue) {
       res.status(400).json({ error: "filePath is required" });
       return;
     }
 
-    const filePath = path.join(folder, filePathParamValue);
-    console.log(`GET /file filePath=${filePath}`);
-
-    try {
-      await fs.promises.stat(filePath);
-    } catch {
+    const filePath = await resolveFilePath(
+      path.join(folder, filePathParamValue)
+    );
+    if (!filePath) {
       res.status(404).json({ error: "no such file or directory" });
       return;
     }
@@ -94,8 +98,10 @@ app.post(
         return;
       }
 
-      const filePath = path.join(folder, filePathParamValue);
-      console.log(`POST /file filePath=${filePath}`);
+      const filePath = await resolveFilePath(
+        path.join(folder, filePathParamValue),
+        false
+      );
 
       if (req?.files?.length !== 1) {
         res.status(400).json({ error: "file is required" });
@@ -128,8 +134,13 @@ app.patch("/api/file", async (req: Request, res: Response) => {
       return;
     }
 
-    const filePath = path.join(folder, filePathParamValue);
-    console.log(`PATCH /file filePath=${filePath} newName=${newName}`);
+    const filePath = await resolveFilePath(
+      path.join(folder, filePathParamValue)
+    );
+    if (!filePath) {
+      res.status(404).json({ error: "no such file or directory" });
+      return;
+    }
 
     const newPath = path.join(path.dirname(filePath), newName);
     console.log(newPath);
@@ -150,8 +161,13 @@ app.delete("/api/file", async (req: Request, res: Response) => {
       return;
     }
 
-    const filePath = path.join(folder, filePathParamValue);
-    console.log(`DELETE /file filePath=${filePath}`);
+    const filePath = await resolveFilePath(
+      path.join(folder, filePathParamValue)
+    );
+    if (!filePath) {
+      res.status(404).json({ error: "no such file or directory" });
+      return;
+    }
 
     await fs.promises.unlink(filePath);
 
@@ -171,7 +187,6 @@ app.put("/api/create-directory", async (req: Request, res: Response) => {
     }
 
     const directoryPath = path.join(folder, directoryPathParamValue);
-    console.log(`PUT /create-directory directoryPath=${directoryPath}`);
 
     await fs.promises.mkdir(directoryPath, { recursive: true });
     res.json({ success: true });
