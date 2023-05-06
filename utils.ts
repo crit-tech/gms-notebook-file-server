@@ -8,6 +8,7 @@ export const resolveFilePath = async (
   let notFound = true;
   const caseInsensitivePossibleFilePaths = await glob(filePath + "*", {
     nocase: true,
+    windowsPathsNoEscape: true,
   });
   if (caseInsensitivePossibleFilePaths.length >= 1) {
     const match = caseInsensitivePossibleFilePaths.find(

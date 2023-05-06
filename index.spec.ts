@@ -1,5 +1,4 @@
 import { execSync } from "child_process";
-import { EOL } from "os";
 import fs from "fs";
 
 const baseUrl = "http://localhost:" + process.env.PORT;
@@ -58,7 +57,7 @@ test("get markdown file", async () => {
     name: "markdown.md",
     type: "file",
     fileType: "markdown",
-    contents: "# Markdown" + EOL,
+    contents: "# Markdown\n",
     downloadUrl:
       "http://localhost:" + process.env.PORT + "/download/samples/markdown.md",
   });
@@ -74,7 +73,7 @@ test("get markdown file, case insensitive filename", async () => {
     name: "CoolStuff.md",
     type: "file",
     fileType: "markdown",
-    contents: "# Cool Stuff" + EOL,
+    contents: "# Cool Stuff\n",
     downloadUrl:
       "http://localhost:" + process.env.PORT + "/download/samples/CoolStuff.md",
   });
@@ -88,7 +87,7 @@ test("get markdown file, case insensitive filename, root", async () => {
     name: "Hello.md",
     type: "file",
     fileType: "markdown",
-    contents: "# Hello" + EOL + EOL + "It's me." + EOL,
+    contents: "# Hello\n\nIt's me.\n",
     downloadUrl: "http://localhost:" + process.env.PORT + "/download/Hello.md",
   });
 });

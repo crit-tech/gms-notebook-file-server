@@ -6,6 +6,7 @@ import path from "path";
 import { isNotJunk } from "junk";
 import multer from "multer";
 import morgan from "morgan";
+import slash from "slash";
 import { getFileType } from "./filetypes.js";
 import { resolveFilePath } from "./utils.js";
 
@@ -79,9 +80,8 @@ app.get("/api/file", async (req: Request, res: Response) => {
       contents: isText
         ? await fs.promises.readFile(filePath, "utf8")
         : undefined,
-      downloadUrl: `http://localhost:${port}/download/${path.relative(
-        folder,
-        filePath
+      downloadUrl: `http://localhost:${port}/download/${slash(
+        path.relative(folder, filePath)
       )}`,
     });
   } catch (error: any) {
