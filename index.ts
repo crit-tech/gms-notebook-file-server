@@ -172,7 +172,12 @@ app.delete("/api/file", async (req: Request, res: Response) => {
       return;
     }
 
-    await fs.promises.unlink(filePath);
+    const isDirectory = (await fs.promises.stat(filePath)).isDirectory();
+    if (!isDirectory) {
+      await fs.promises.unlink(filePath);
+    } else {
+      await fs.promises.rmdir(filePath, { recursive: true });
+    }
 
     res.json({ success: true });
   } catch (error: any) {

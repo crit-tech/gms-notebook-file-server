@@ -34,6 +34,7 @@ test("get root directory", async () => {
   const json = await response.json();
   expect(json).toEqual([
     { name: "Hello.md", type: "file" },
+    { name: "delete_this_folder", type: "directory" },
     { name: "samples", type: "directory" },
     { name: "subdirectory", type: "directory" },
   ]);
@@ -219,4 +220,20 @@ test("delete a file", async () => {
   expect(json).toEqual({ success: true });
 
   expect(fs.existsSync("./test-files/samples/delete_me.md")).toBe(false);
+});
+
+test("delete a folder", async () => {
+  expect(fs.existsSync("./test-files/delete_this_folder")).toBe(true);
+
+  const response = await fetch(
+    baseUrl + "/api/file?filePath=delete_this_folder",
+    {
+      method: "DELETE",
+    }
+  );
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({ success: true });
+
+  expect(fs.existsSync("./test-files/delete_this_folder")).toBe(false);
 });
