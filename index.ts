@@ -56,7 +56,7 @@ app.get("/api/files", async (req: Request, res: Response) => {
 
 app.get("/api/file", async (req: Request, res: Response) => {
   try {
-    let filePathParamValue = req?.query?.filePath?.toString();
+    const filePathParamValue = req?.query?.filePath?.toString();
     if (!filePathParamValue) {
       res.status(400).json({ error: "filePath is required" });
       return;
@@ -79,7 +79,10 @@ app.get("/api/file", async (req: Request, res: Response) => {
       contents: isText
         ? await fs.promises.readFile(filePath, "utf8")
         : undefined,
-      downloadUrl: `http://localhost:${port}/download/${filePathParamValue}`,
+      downloadUrl: `http://localhost:${port}/download/${path.relative(
+        folder,
+        filePath
+      )}`,
     });
   } catch (error: any) {
     console.error(error.message);
