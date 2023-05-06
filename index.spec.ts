@@ -22,7 +22,7 @@ test("index page", async () => {
 });
 
 test("download markdown file", async () => {
-  const response = await fetch(baseUrl + "/download/hello.md");
+  const response = await fetch(baseUrl + "/download/Hello.md");
   expect(response.status).toBe(200);
   const text = await response.text();
   expect(text).toContain("# Hello");
@@ -33,7 +33,7 @@ test("get root directory", async () => {
   expect(response.status).toBe(200);
   const json = await response.json();
   expect(json).toEqual([
-    { name: "hello.md", type: "file" },
+    { name: "Hello.md", type: "file" },
     { name: "samples", type: "directory" },
     { name: "subdirectory", type: "directory" },
   ]);
@@ -77,6 +77,19 @@ test("get markdown file, case insensitive filename", async () => {
     contents: "# Cool Stuff" + EOL,
     downloadUrl:
       "http://localhost:" + process.env.PORT + "/download/samples/CoolStuff.md",
+  });
+});
+
+test("get markdown file, case insensitive filename, root", async () => {
+  const response = await fetch(baseUrl + "/api/file?filePath=hello.md");
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({
+    name: "Hello.md",
+    type: "file",
+    fileType: "markdown",
+    contents: "# Hello" + EOL + EOL + "It's me." + EOL,
+    downloadUrl: "http://localhost:" + process.env.PORT + "/download/Hello.md",
   });
 });
 
