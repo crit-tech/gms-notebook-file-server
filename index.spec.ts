@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import { EOL } from "os";
 import fs from "fs";
 
 const baseUrl = "http://localhost:" + process.env.PORT;
@@ -53,6 +54,7 @@ test("get markdown file", async () => {
   );
   expect(response.status).toBe(200);
   const json = await response.json();
+  json.contents = json.contents.replace(/\r\n/g, "\n");
   expect(json).toEqual({
     name: "markdown.md",
     type: "file",
@@ -69,6 +71,7 @@ test("get markdown file, case insensitive filename", async () => {
   );
   expect(response.status).toBe(200);
   const json = await response.json();
+  json.contents = json.contents.replace(/\r\n/g, "\n");
   expect(json).toEqual({
     name: "CoolStuff.md",
     type: "file",
@@ -83,6 +86,7 @@ test("get markdown file, case insensitive filename, root", async () => {
   const response = await fetch(baseUrl + "/api/file?filePath=hello.md");
   expect(response.status).toBe(200);
   const json = await response.json();
+  json.contents = json.contents.replace(/\r\n/g, "\n");
   expect(json).toEqual({
     name: "Hello.md",
     type: "file",
