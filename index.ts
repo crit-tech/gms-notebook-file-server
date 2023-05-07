@@ -8,7 +8,7 @@ import multer from "multer";
 import morgan from "morgan";
 import slash from "slash";
 import { getFileType } from "./filetypes.js";
-import { resolveFilePath } from "./utils.js";
+import { resolveFilePath, pathExists } from "./utils.js";
 
 dotenv.config();
 
@@ -101,33 +101,46 @@ app.post(
         return;
       }
 
-      const filePath = await resolveFilePath(
-        path.join(folder, filePathParamValue),
-        false
-      );
-
       if (req?.files?.length !== 1) {
         res.status(400).json({ error: "file is required" });
         return;
       }
 
+      const autorenameParamValue = req?.query?.autorename?.toString();
+      const autorename = autorenameParamValue === "true";
+
+      let filePath = await resolveFilePath(
+        path.join(folder, filePathParamValue),
+        false
+      );
+
       const parentFolderPath = path.dirname(filePath);
-      let parentFolderPathExists = true;
-      try {
-        await fs.promises.stat(parentFolderPath);
-      } catch (error) {
-        parentFolderPathExists = false;
+      if (!(await pathExists(parentFolderPath))) {
+        await fs.promises.mkdir(parentFolderPath, { recursive: true });
       }
 
-      if (!parentFolderPathExists) {
-        await fs.promises.mkdir(parentFolderPath, { recursive: true });
+      let exists = await pathExists(filePath);
+      let counter = 1;
+      const ext = path.extname(filePath);
+      while (exists && autorename) {
+        const base = path.basename(filePath, ext);
+        if (/-\d+$/.test(base)) {
+          filePath = path.join(
+            parentFolderPath,
+            base.replace(/-\d+$/, "") + `-${counter}${ext}`
+          );
+        } else {
+          filePath = path.join(parentFolderPath, base + `-${counter}${ext}`);
+        }
+        counter++;
+        exists = await pathExists(filePath);
       }
 
       const file = (req.files as Express.Multer.File[])[0];
       await fs.promises.copyFile(file.path, filePath);
       await fs.promises.unlink(file.path);
 
-      res.json({ success: true });
+      res.json({ success: true, name: path.basename(filePath) });
     } catch (error: any) {
       console.error(error.message);
       res.status(500).json({ error: error.message });
@@ -188,7 +201,7 @@ app.delete("/api/file", async (req: Request, res: Response) => {
     if (!isDirectory) {
       await fs.promises.unlink(filePath);
     } else {
-      await fs.promises.rmdir(filePath, { recursive: true });
+      await fs.promises.rm(filePath, { recursive: true });
     }
 
     res.json({ success: true });

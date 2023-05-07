@@ -165,7 +165,7 @@ test("upload a new file", async () => {
   );
   expect(response.status).toBe(200);
   const json = await response.json();
-  expect(json).toEqual({ success: true });
+  expect(json).toEqual({ name: "new-file.md", success: true });
 
   const contents = fs.readFileSync("./test-files/samples/new-file.md", "utf8");
   expect(contents).toBe("Hello, World!");
@@ -184,10 +184,32 @@ test("upload a new file, non-existant folder", async () => {
   );
   expect(response.status).toBe(200);
   const json = await response.json();
-  expect(json).toEqual({ success: true });
+  expect(json).toEqual({ name: "new-file.md", success: true });
 
   const contents = fs.readFileSync(
     "./test-files/samples/new-folder/new-file.md",
+    "utf8"
+  );
+  expect(contents).toBe("Hello, World!");
+});
+
+test("upload a new file, with autorename", async () => {
+  const formData = new FormData();
+  const data = new Blob(["Hello, World!"], { type: "text/plain" });
+  formData.append("file", data, "markdown.md");
+  const response = await fetch(
+    baseUrl + "/api/file?filePath=samples%2Fmarkdown.md&autorename=true",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({ name: "markdown-1.md", success: true });
+
+  const contents = fs.readFileSync(
+    "./test-files/samples/markdown-1.md",
     "utf8"
   );
   expect(contents).toBe("Hello, World!");
