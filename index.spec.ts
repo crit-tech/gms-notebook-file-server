@@ -171,6 +171,28 @@ test("upload a new file", async () => {
   expect(contents).toBe("Hello, World!");
 });
 
+test("upload a new file, non-existant folder", async () => {
+  const formData = new FormData();
+  const data = new Blob(["Hello, World!"], { type: "text/plain" });
+  formData.append("file", data, "foo.txt");
+  const response = await fetch(
+    baseUrl + "/api/file?filePath=samples%2Fnew-folder%2Fnew-file.md",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+  expect(response.status).toBe(200);
+  const json = await response.json();
+  expect(json).toEqual({ success: true });
+
+  const contents = fs.readFileSync(
+    "./test-files/samples/new-folder/new-file.md",
+    "utf8"
+  );
+  expect(contents).toBe("Hello, World!");
+});
+
 test("rename a file", async () => {
   expect(fs.existsSync("./test-files/samples/rename_me.md")).toBe(true);
 

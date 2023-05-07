@@ -111,6 +111,18 @@ app.post(
         return;
       }
 
+      const parentFolderPath = path.dirname(filePath);
+      let parentFolderPathExists = true;
+      try {
+        await fs.promises.stat(parentFolderPath);
+      } catch (error) {
+        parentFolderPathExists = false;
+      }
+
+      if (!parentFolderPathExists) {
+        await fs.promises.mkdir(parentFolderPath, { recursive: true });
+      }
+
       const file = (req.files as Express.Multer.File[])[0];
       await fs.promises.copyFile(file.path, filePath);
       await fs.promises.unlink(file.path);
