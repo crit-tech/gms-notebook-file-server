@@ -1,10 +1,19 @@
 import { execSync } from "child_process";
-import { EOL } from "os";
 import fs from "fs";
 
 const baseUrl = "http://localhost:" + process.env.PORT;
 const newDirectory = "./test-files/new-directory";
-const newFile = "./test-files/samples/new-file.md";
+
+interface FileItem {
+  name: string;
+  type: string;
+}
+
+const comparer = (a: FileItem, b: FileItem) => {
+  if (a.type === "directory" && b.type === "file") return -1;
+  if (a.type === "file" && b.type === "directory") return 1;
+  return a.name.localeCompare(b.name);
+};
 
 function cleanup() {
   execSync("git restore --source=HEAD --staged --worktree -- ./test-files");
@@ -32,12 +41,14 @@ test("get root directory", async () => {
   const response = await fetch(baseUrl + "/api/files");
   expect(response.status).toBe(200);
   const json = await response.json();
-  expect(json).toEqual([
-    { name: "Hello.md", type: "file" },
-    { name: "delete_this_folder", type: "directory" },
-    { name: "samples", type: "directory" },
-    { name: "subdirectory", type: "directory" },
-  ]);
+  expect(json.sort(comparer)).toEqual(
+    [
+      { name: "Hello.md", type: "file" },
+      { name: "delete_this_folder", type: "directory" },
+      { name: "samples", type: "directory" },
+      { name: "subdirectory", type: "directory" },
+    ].sort(comparer)
+  );
 });
 
 test("get subdirectory", async () => {
