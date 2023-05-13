@@ -1,6 +1,6 @@
 {
   "name": "gms-notebook-file-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Local file server for GMsNotebook.com",
   "main": "dist/server.js",
   "type": "module",
