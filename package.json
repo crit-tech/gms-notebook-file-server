@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && rimraf dist/*.spec.*",
+    "build": "tsc && rimraf --glob dist/*.spec.*",
     "start": "node dist/run.js",
     "dev": "concurrently \"tsc --watch\" \"nodemon -q dist/run.js\"",
     "test-server": "cross-env NODE_ENV=test PORT=3001 LOCAL_FOLDER=./test-files npm run start",
