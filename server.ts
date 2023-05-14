@@ -9,7 +9,9 @@ import slash from "slash";
 import { getFileType } from "./filetypes.js";
 import { resolveFilePath, pathExists } from "./utils.js";
 
-export function startServer(port: number, folder: string) {
+export type Server = ReturnType<typeof express.application.listen>;
+
+export function startServer(port: number, folder: string): Server {
   const app: Express = express();
   const upload = multer({ dest: "uploads/" });
 
@@ -228,7 +230,9 @@ export function startServer(port: number, folder: string) {
     }
   });
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
   });
+
+  return server;
 }

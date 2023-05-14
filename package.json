@@ -1,6 +1,6 @@
 {
   "name": "gms-notebook-file-server",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Local file server for GMsNotebook.com",
   "main": "dist/server.js",
   "type": "module",
@@ -11,9 +11,7 @@
     "build": "tsc && rimraf --glob dist/*.spec.*",
     "start": "node dist/run.js",
     "dev": "concurrently \"tsc --watch\" \"nodemon -q dist/run.js\"",
-    "test-server": "cross-env NODE_ENV=test PORT=3001 LOCAL_FOLDER=./test-files npm run start",
-    "test-runner": "cross-env PORT=3001 jest",
-    "test": "npm run build && concurrently -s command-1 -k npm:test-server npm:test-runner"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "author": "David Prothero",
   "license": "MIT",

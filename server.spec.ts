@@ -1,7 +1,9 @@
 import { execSync } from "child_process";
 import fs from "fs";
+import { startServer, Server } from "./server.js";
 
-const baseUrl = "http://localhost:" + process.env.PORT;
+const testPort = 3001;
+const baseUrl = "http://localhost:" + testPort;
 const newDirectory = "./test-files/new-directory";
 
 interface FileItem {
@@ -20,8 +22,16 @@ function cleanup() {
   execSync("git clean -f -d -- ./test-files");
 }
 
-beforeAll(cleanup);
-afterAll(cleanup);
+let server: Server;
+
+beforeAll(() => {
+  cleanup();
+  server = startServer(testPort, "./test-files");
+});
+afterAll((done) => {
+  cleanup();
+  server.close(() => done());
+});
 
 test("index page", async () => {
   const response = await fetch(baseUrl + "/");
@@ -73,7 +83,7 @@ test("get markdown file", async () => {
     fileType: "markdown",
     contents: "# Markdown\n",
     downloadUrl:
-      "http://localhost:" + process.env.PORT + "/download/samples/markdown.md",
+      "http://localhost:" + testPort + "/download/samples/markdown.md",
   });
 });
 
@@ -90,7 +100,7 @@ test("get markdown file, case insensitive filename", async () => {
     fileType: "markdown",
     contents: "# Cool Stuff\n",
     downloadUrl:
-      "http://localhost:" + process.env.PORT + "/download/samples/CoolStuff.md",
+      "http://localhost:" + testPort + "/download/samples/CoolStuff.md",
   });
 });
 
@@ -104,7 +114,7 @@ test("get markdown file, case insensitive filename, root", async () => {
     type: "file",
     fileType: "markdown",
     contents: "# Hello\n\nIt's me.\n",
-    downloadUrl: "http://localhost:" + process.env.PORT + "/download/Hello.md",
+    downloadUrl: "http://localhost:" + testPort + "/download/Hello.md",
   });
 });
 
@@ -119,8 +129,7 @@ test("get xfdf file", async () => {
     type: "file",
     fileType: "xfdf",
     contents: "XML GOES HERE!",
-    downloadUrl:
-      "http://localhost:" + process.env.PORT + "/download/samples/foo.xfdf",
+    downloadUrl: "http://localhost:" + testPort + "/download/samples/foo.xfdf",
   });
 });
 
@@ -135,8 +144,7 @@ test("get jpg file", async () => {
     type: "file",
     fileType: "image",
     contents: undefined,
-    downloadUrl:
-      "http://localhost:" + process.env.PORT + "/download/samples/pixel.jpg",
+    downloadUrl: "http://localhost:" + testPort + "/download/samples/pixel.jpg",
   });
 });
 
