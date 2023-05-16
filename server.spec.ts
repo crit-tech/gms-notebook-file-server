@@ -26,7 +26,7 @@ let server: Server;
 
 beforeAll(() => {
   cleanup();
-  server = startServer(testPort, "./test-files");
+  server = startServer(testPort, "./test-files", ".");
 });
 afterAll((done) => {
   cleanup();

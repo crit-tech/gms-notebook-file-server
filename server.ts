@@ -11,9 +11,13 @@ import { resolveFilePath, pathExists } from "./utils.js";
 
 export type Server = ReturnType<typeof express.application.listen>;
 
-export function startServer(port: number, folder: string): Server {
+export function startServer(
+  port: number,
+  folder: string,
+  workFolder: string
+): Server {
   const app: Express = express();
-  const upload = multer({ dest: "uploads/" });
+  const upload = multer({ dest: path.join(workFolder, "uploads") });
 
   if (!folder || !fs.existsSync(folder)) {
     console.error(`⚡️[server]: Folder ${folder} does not exist`);
