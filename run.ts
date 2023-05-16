@@ -8,4 +8,4 @@ const port: number = parseInt(process.env.PORT ?? "3001", 10);
 const folder: string =
   process.env.LOCAL_FOLDER ?? path.join(__dirname, "test-files");
 
-startServer(port, folder);
+startServer(port, folder, ".");
