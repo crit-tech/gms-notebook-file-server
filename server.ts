@@ -1,4 +1,5 @@
 import express, { Express, Request, Response } from "express";
+import bodyParser from "body-parser";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
@@ -10,11 +11,17 @@ import { getFileType } from "./filetypes.js";
 import { resolveFilePath, pathExists } from "./utils.js";
 
 export type Server = ReturnType<typeof express.application.listen>;
+export type Event = {
+  type: string;
+  payload: any;
+};
+export type EventCallback = (event: Event) => void;
 
 export function startServer(
   port: number,
   folder: string,
-  workFolder: string
+  workFolder: string,
+  onEvent?: EventCallback
 ): Server {
   const app: Express = express();
   const upload = multer({ dest: path.join(workFolder, "uploads") });
@@ -233,6 +240,20 @@ export function startServer(
       res.status(500).json({ error: error.message });
     }
   });
+
+  app.post(
+    "/api/connect",
+    bodyParser.json(),
+    async (req: Request, res: Response) => {
+      if (onEvent) {
+        onEvent({ type: "connect", payload: req.body });
+        return res.json({ success: true });
+      }
+      res
+        .status(404)
+        .json({ success: false, message: "No listener to accept event." });
+    }
+  );
 
   const server = app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
