@@ -1,3 +1,12 @@
+export type ServerOptions = {
+  port: number;
+  folder: string;
+  indexingEnabled: boolean;
+  indexingKey?: string;
+  lastFullIndex?: Date;
+  providerId?: string;
+};
+
 export type FileType = "markdown" | "image" | "pdf" | "xfdf" | "unknown";
 
 const markdownExtensions = ["md", "mdx"];
