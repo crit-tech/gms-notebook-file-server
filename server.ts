@@ -7,8 +7,9 @@ import { isNotJunk } from "junk";
 import multer from "multer";
 import morgan from "morgan";
 import slash from "slash";
-import { getFileType } from "./filetypes.js";
+import { getFileType, ServerOptions } from "./types.js";
 import { resolveFilePath, pathExists } from "./utils.js";
+import { IndexingServer } from "./indexing.js";
 
 export type Server = ReturnType<typeof express.application.listen>;
 export type Event = {
@@ -18,16 +19,24 @@ export type Event = {
 export type EventCallback = (event: Event) => void;
 
 export function startServer(
-  port: number,
-  folder: string,
+  options: ServerOptions,
   workFolder: string,
   onEvent?: EventCallback
 ): Server {
   const app: Express = express();
   const upload = multer({ dest: path.join(workFolder, "uploads") });
+  const { port, folder } = options;
+
+  const log = (message: string, type = "log") => {
+    const logFunc = type === "error" ? console.error : console.log;
+    logFunc(message);
+    if (onEvent) {
+      onEvent({ type, payload: message });
+    }
+  };
 
   if (!folder || !fs.existsSync(folder)) {
-    console.error(`⚡️[server]: Folder ${folder} does not exist`);
+    log(`Folder ${folder} does not exist`, "error");
     process.exit(1);
   }
 
@@ -62,7 +71,7 @@ export function startServer(
 
       res.json(filesAndFolders);
     } catch (error: any) {
-      console.error(error.message);
+      log(error.message, "error");
       res.status(500).json({ error: error.message });
     }
   });
@@ -97,7 +106,7 @@ export function startServer(
         )}`,
       });
     } catch (error: any) {
-      console.error(error.message);
+      log(error.message, "error");
       res.status(500).json({ error: error.message });
     }
   });
@@ -154,7 +163,7 @@ export function startServer(
 
         res.json({ success: true, name: path.basename(filePath) });
       } catch (error: any) {
-        console.error(error.message);
+        log(error.message, "error");
         res.status(500).json({ error: error.message });
       }
     }
@@ -183,12 +192,11 @@ export function startServer(
       }
 
       const newPath = path.join(path.dirname(filePath), newName);
-      console.log(newPath);
       await fs.promises.rename(filePath, newPath);
 
       res.json({ success: true });
     } catch (error: any) {
-      console.error(error.message);
+      log(error.message, "error");
       res.status(500).json({ error: error.message });
     }
   });
@@ -218,7 +226,7 @@ export function startServer(
 
       res.json({ success: true });
     } catch (error: any) {
-      console.error(error.message);
+      log(error.message, "error");
       res.status(500).json({ error: error.message });
     }
   });
@@ -236,7 +244,7 @@ export function startServer(
       await fs.promises.mkdir(directoryPath, { recursive: true });
       res.json({ success: true });
     } catch (error: any) {
-      console.error(error.message);
+      log(error.message, "error");
       res.status(500).json({ error: error.message });
     }
   });
@@ -256,7 +264,11 @@ export function startServer(
   );
 
   const server = app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+    log(`Server is running at http://localhost:${port}`);
+    if (options.indexingEnabled && options.indexingKey) {
+      const indexingServer = new IndexingServer(options, log);
+      indexingServer.checkTimer();
+    }
   });
 
   return server;
