@@ -182,4 +182,4 @@ test("run indexing", async () => {
     () => {}
   );
   await server.runIndexing();
-}, 10000);
+});
